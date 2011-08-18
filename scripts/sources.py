@@ -4,8 +4,8 @@ import xml.dom.minidom
 from urlparse import urlparse
 import cgi
 
-import twitter
-import feedparser
+import twitter # http://code.google.com/p/python-twitter/
+import feedparser # http://feedparser.org/
 
 def make_link(description, url, title = None):
     if title is not None and title != "":
