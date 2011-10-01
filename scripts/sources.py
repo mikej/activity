@@ -34,8 +34,9 @@ def get_last_fm(user, api_key):
             links.append(artist + " - " + make_link(name, url))
         return make_ul(links)
 
-def get_delicious(user, password):
-    f = urllib.urlopen("https://%s:%s@api.del.icio.us/v1/posts/recent" % (user, password))
+def get_bookmarks(user, password, end_point):
+    url = (end_point + "posts/recent") % (user, password)
+    f = urllib.urlopen(url)
     # f = open("delicious_recent.xml", "r")
     xml_string = f.read()
     doc = xml.dom.minidom.parseString(xml_string)
@@ -46,6 +47,12 @@ def get_delicious(user, password):
     else:
         result = "No recent entries"
     return result
+
+def get_delicious(user, password):
+    return get_bookmarks(user, password, "https://%s:%s@api.del.icio.us/v1/")
+
+def get_pinboard(user, password):
+    return get_bookmarks(user, password, "https://%s:%s@api.pinboard.in/v1/")
 
 def make_delicious_html(post):
     url = post.getAttribute("href")
