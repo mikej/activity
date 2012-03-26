@@ -7,15 +7,6 @@ import cgi
 import twitter # http://code.google.com/p/python-twitter/
 import feedparser # http://feedparser.org/
 
-def make_link(description, url, title = None):
-    if title is not None and title != "":
-        return '<a href="%s" title="%s">%s</a>' % (url, cgi.escape(title, True), cgi.escape(description, True))
-    else:
-        return '<a href="%s">%s</a>' % (url, cgi.escape(description, True))
-
-def make_ul(items):
-    return "<ul>\n" + "".join(["<li>%s</li>\n" % item for item in items]) + "</ul>"
-
 def get_last_fm(user, api_key):
     params = urllib.urlencode({'method': 'user.getrecenttracks',
         'user': user, 'api_key': api_key})
@@ -86,6 +77,28 @@ def get_so_answers(user_id):
         return make_ul(items)
     else:
         return "No recent answers"
+
+def get_github_activity(user):
+    f = feedparser.parse("http://github.com/%s.atom" % user)
+    entries = f.entries
+    entries.sort(key = lambda e : e.published_parsed, reverse = True)
+    if len(entries) > 0:
+        items = []
+        for entry in entries[:5]:
+            title = re.sub("^%s " % user, "", entry.title).capitalize()
+            items.append(make_link(title, entry.link))
+        return make_ul(items)
+    else:
+        return "No recent activity"        
+
+def make_link(description, url, title = None):
+    if title is not None and title != "":
+        return '<a href="%s" title="%s">%s</a>' % (url, cgi.escape(title, True), cgi.escape(description, True))
+    else:
+        return '<a href="%s">%s</a>' % (url, cgi.escape(description, True))
+
+def make_ul(items):
+    return "<ul>\n" + "".join(["<li>%s</li>\n" % item for item in items]) + "</ul>"
 
 def is_answer(e):
     return e.title.startswith('Answer by ')
