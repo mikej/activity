@@ -53,11 +53,25 @@ def make_delicious_html(post):
 
 def get_twitter(user):
     api = twitter.Api()
-    timeline = api.GetUserTimeline(user)
-    items = []
-    for status in timeline[:3]:
-        items.append(format_tweet(status.text) + "<br/>" + make_link(status.relative_created_at, "http://twitter.com/%s/status/%s" % (user, status.id)))
-    return make_ul(items)
+    # try getting an increasing number of tweets until the timeline contains
+    # at least 3 tweets that are not @replies
+    for tweet_count in (20, 50, 100, 250):
+        timeline = api.GetUserTimeline(user, count = tweet_count)
+        items = []
+        for status in timeline:
+            if not is_at_reply(status):
+                items.append(format_tweet(status.text) + "<br/>" + 
+                    make_link(status.relative_created_at, "http://twitter.com/%s/status/%s" % (user, status.id)))
+            if len(items) == 3: return make_ul(items)
+    # didn't find 3 recent tweets, if *any* were found then return them
+    # otherwise return a "No recent tweets messsage"
+    if len(items) > 0:
+        return make_ul(items)
+    else:
+        return "No recent tweets"
+
+def is_at_reply(status):
+    return status.text.startswith('@')
 
 def get_goodreads(id, shelf):
     f = feedparser.parse("http://www.goodreads.com/review/list_rss/%s?shelf=%s" % (id, shelf))
