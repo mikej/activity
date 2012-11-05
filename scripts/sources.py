@@ -3,9 +3,11 @@ import urllib
 import xml.dom.minidom
 from urlparse import urlparse
 import cgi
+from datetime import timedelta
 
 import twitter # http://code.google.com/p/python-twitter/
 import feedparser # http://feedparser.org/
+from icalendar import Calendar
 
 def get_last_fm(user, api_key):
     params = urllib.urlencode({'method': 'user.getrecenttracks',
@@ -17,13 +19,13 @@ def get_last_fm(user, api_key):
     if doc.firstChild.nodeName == 'lfm' and \
             doc.firstChild.getAttribute('status') == 'ok':
         tracks = doc.getElementsByTagName('track')
-        links = []
+        items = []
         for track in tracks:
             artist = track.getElementsByTagName('artist')[0].firstChild.nodeValue
             name = track.getElementsByTagName('name')[0].firstChild.nodeValue
             url = track.getElementsByTagName('url')[0].firstChild.nodeValue
-            links.append(artist + " - " + make_link(name, url))
-        return make_ul(links)
+            items.append(artist + " - " + make_link(name, url))
+        return make_ul(items)
 
 def get_bookmarks(user, password, end_point):
     url = (end_point + "posts/recent") % (user, password)
@@ -144,3 +146,46 @@ def get_domain(url):
         return hostname[4:]
     else:
         return hostname
+
+def get_lanyrd(username):
+    f = urllib.urlopen("http://lanyrd.com/profile/%s/%s.attending.ics" % (username, username))
+    cal = Calendar.from_ical(f.read())
+    f.close()
+
+    events = [component for component in cal.walk() if component.name == 'VEVENT']
+    events.sort(key = lambda c: c.get('DTSTART').dt)
+
+    items = []
+    for event in events:
+        event_title = event.get('SUMMARY')
+        event_date = make_event_date(event)
+        event_url = event.get('URL')
+        items.append(make_link(event_title, event_url) + "<br/>" + event_date)
+    return make_ul(items)
+
+def make_event_date(event):
+    start_date = event.get('DTSTART').dt
+    start_year = start_date.strftime('%Y')
+    start_month = start_date.strftime('%-B')
+    start_day_of_month = start_date.strftime('%A, ') + ordinal(start_date.day)
+    # end dates seem to be 1 day too many in the ical so subtract 1
+    end_date = (event.get('DTEND').dt - timedelta(days = 1))
+    end_year = end_date.strftime('%Y')
+    end_month = end_date.strftime('%-B')
+    end_day_of_month = end_date.strftime('%A, ') + ordinal(end_date.day)
+
+    if start_date == end_date:
+        return " ".join([start_day_of_month, start_month, start_year])
+    elif start_year != end_year:
+        return " ".join([start_day_of_month, start_month, start_year, " - ", end_day_of_month, end_month, end_year])
+    elif start_month != end_month:
+        return " ".join([start_day_of_month, start_month, end_day_of_month, end_month,  end_year])
+    else:
+        return " ".join([start_day_of_month, " - ", end_day_of_month, end_month, end_year])
+
+def ordinal(day):
+    if 4 <= day <= 20 or 24 <= day <= 30:
+        suffix = "th"
+    else:
+        suffix = ["st", "nd", "rd"][day % 10 - 1]
+    return str(day) + suffix
