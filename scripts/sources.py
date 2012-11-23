@@ -3,7 +3,8 @@ import urllib
 import xml.dom.minidom
 from urlparse import urlparse
 import cgi
-from datetime import timedelta
+from datetime import date, datetime, timedelta
+import pytz
 
 import twitter # http://code.google.com/p/python-twitter/
 import feedparser # http://feedparser.org/
@@ -153,7 +154,7 @@ def get_lanyrd(username):
     f.close()
 
     events = [component for component in cal.walk() if component.name == 'VEVENT']
-    events.sort(key = lambda c: c.get('DTSTART').dt)
+    events.sort(key = lambda e: get_datetime(e))
 
     items = []
     for event in events:
@@ -162,6 +163,18 @@ def get_lanyrd(username):
         event_url = event.get('URL')
         items.append(make_link(event_title, event_url) + "<br/>" + event_date)
     return make_ul(items)
+
+def get_datetime(event):
+    """If an event only specifies a start day but not a start time then the
+    DTSTART will be a date object rather than a datetime object. This method
+    ensures we have a datetime so that the start times of all events are
+    comparable by sort."""
+    dt = event.get('DTSTART').dt
+    if isinstance(dt, datetime):
+        return dt
+    else:
+        # treat start time of the event as midnight UTC
+        return pytz.utc.localize(datetime(dt.year, dt.month, dt.day))
 
 def make_event_date(event):
     start_date = event.get('DTSTART').dt
