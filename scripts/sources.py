@@ -177,12 +177,23 @@ def get_datetime(event):
         return pytz.utc.localize(datetime(dt.year, dt.month, dt.day))
 
 def make_event_date(event):
-    start_date = event.get('DTSTART').dt
+    if isinstance(event.get('DTSTART').dt, datetime):
+        start_datetime = event.get('DTSTART').dt
+        end_datetime = event.get('DTEND').dt
+        start_date = date(start_datetime.year, start_datetime.month, start_datetime.day)
+        end_date = date(end_datetime.year, end_datetime.month, end_datetime.day)
+    elif isinstance(event.get('DTSTART').dt, date):
+        start_date = event.get('DTSTART').dt
+        # end dates seem to be 1 day too high for events that don't specify times
+        # in the ical so subtract 1
+        end_date = (event.get('DTEND').dt - timedelta(days = 1))
+    else:
+        return "" # maybe raise an exception instead
+        
     start_year = start_date.strftime('%Y')
     start_month = start_date.strftime('%-B')
     start_day_of_month = start_date.strftime('%A, ') + ordinal(start_date.day)
-    # end dates seem to be 1 day too many in the ical so subtract 1
-    end_date = (event.get('DTEND').dt - timedelta(days = 1))
+    
     end_year = end_date.strftime('%Y')
     end_month = end_date.strftime('%-B')
     end_day_of_month = end_date.strftime('%A, ') + ordinal(end_date.day)
