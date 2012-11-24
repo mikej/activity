@@ -48,34 +48,6 @@ def get_delicious(user, password):
 def get_pinboard(user, password):
     return get_bookmarks(user, password, "https://%s:%s@api.pinboard.in/v1/")
 
-def make_delicious_html(post):
-    url = post.getAttribute("href")
-    title = post.getAttribute("description")
-    notes = post.getAttribute("extended")
-    return make_link(title, url, notes) + " <span style=\"color: #808080;\">(" + get_domain(url) + ")</span>"
-
-def get_twitter(user):
-    api = twitter.Api()
-    # try getting an increasing number of tweets until the timeline contains
-    # at least 3 tweets that are not @replies
-    for tweet_count in (20, 50, 100, 250):
-        timeline = api.GetUserTimeline(user, count = tweet_count)
-        items = []
-        for status in timeline:
-            if not is_at_reply(status):
-                items.append(format_tweet(status.text) + "<br/>" + 
-                    make_link(status.relative_created_at, "http://twitter.com/%s/status/%s" % (user, status.id)))
-            if len(items) == 3: return make_ul(items)
-    # didn't find 3 recent tweets, if *any* were found then return them
-    # otherwise return a "No recent tweets messsage"
-    if len(items) > 0:
-        return make_ul(items)
-    else:
-        return "No recent tweets"
-
-def is_at_reply(status):
-    return status.text.startswith('@')
-
 def get_goodreads(id, shelf):
     f = feedparser.parse("http://www.goodreads.com/review/list_rss/%s?shelf=%s" % (id, shelf))
     items = []
@@ -106,7 +78,52 @@ def get_github_activity(user):
             items.append(make_link(title, entry.link))
         return make_ul(items)
     else:
-        return "No recent activity"        
+        return "No recent activity"
+
+def get_lanyrd(username):
+    f = urllib.urlopen("http://lanyrd.com/profile/%s/%s.attending.ics" % (username, username))
+    cal = Calendar.from_ical(f.read())
+    f.close()
+
+    events = [component for component in cal.walk() if component.name == 'VEVENT']
+    events.sort(key = lambda e: get_datetime(e))
+
+    items = []
+    for event in events:
+        event_title = event.get('SUMMARY')
+        event_date = make_event_date(event)
+        event_url = event.get('URL')
+        items.append(make_link(event_title, event_url) + "<br/>" + event_date)
+    return make_ul(items)       
+
+def get_twitter(user):
+    """this no longer works since Twitter API changes"""
+    api = twitter.Api()
+    # try getting an increasing number of tweets until the timeline contains
+    # at least 3 tweets that are not @replies
+    for tweet_count in (20, 50, 100, 250):
+        timeline = api.GetUserTimeline(user, count = tweet_count)
+        items = []
+        for status in timeline:
+            if not is_at_reply(status):
+                items.append(format_tweet(status.text) + "<br/>" + 
+                    make_link(status.relative_created_at, "http://twitter.com/%s/status/%s" % (user, status.id)))
+            if len(items) == 3: return make_ul(items)
+    # didn't find 3 recent tweets, if *any* were found then return them
+    # otherwise return a "No recent tweets messsage"
+    if len(items) > 0:
+        return make_ul(items)
+    else:
+        return "No recent tweets"
+
+def make_delicious_html(post):
+    url = post.getAttribute("href")
+    title = post.getAttribute("description")
+    notes = post.getAttribute("extended")
+    return make_link(title, url, notes) + " <span style=\"color: #808080;\">(" + get_domain(url) + ")</span>"
+
+def is_at_reply(status):
+    return status.text.startswith('@')
 
 def make_link(description, url, title = None):
     if title is not None and title != "":
@@ -148,22 +165,6 @@ def get_domain(url):
     else:
         return hostname
 
-def get_lanyrd(username):
-    f = urllib.urlopen("http://lanyrd.com/profile/%s/%s.attending.ics" % (username, username))
-    cal = Calendar.from_ical(f.read())
-    f.close()
-
-    events = [component for component in cal.walk() if component.name == 'VEVENT']
-    events.sort(key = lambda e: get_datetime(e))
-
-    items = []
-    for event in events:
-        event_title = event.get('SUMMARY')
-        event_date = make_event_date(event)
-        event_url = event.get('URL')
-        items.append(make_link(event_title, event_url) + "<br/>" + event_date)
-    return make_ul(items)
-
 def get_datetime(event):
     """If an event only specifies a start day but not a start time then the
     DTSTART will be a date object rather than a datetime object. This method
@@ -189,7 +190,7 @@ def make_event_date(event):
         end_date = (event.get('DTEND').dt - timedelta(days = 1))
     else:
         return "" # maybe raise an exception instead
-        
+
     start_year = start_date.strftime('%Y')
     start_month = start_date.strftime('%-B')
     start_day_of_month = start_date.strftime('%A, ') + ordinal(start_date.day)
@@ -199,12 +200,16 @@ def make_event_date(event):
     end_day_of_month = end_date.strftime('%A, ') + ordinal(end_date.day)
 
     if start_date == end_date:
+        # if same day then display like "Saturday, 8th December 2012"
         return " ".join([start_day_of_month, start_month, start_year])
     elif start_year != end_year:
+        # if different years then display like "Monday, 31st December 2012 - Tuesday 1st January 2013"
         return " ".join([start_day_of_month, start_month, start_year, " - ", end_day_of_month, end_month, end_year])
     elif start_month != end_month:
+        # if in different months display like "Friday, 30th November - Saturday, 1st December 2012"
         return " ".join([start_day_of_month, start_month, end_day_of_month, end_month,  end_year])
     else:
+        # if in the year and month display like "Saturday, 24th - Sunday 25th November 2012"
         return " ".join([start_day_of_month, " - ", end_day_of_month, end_month, end_year])
 
 def ordinal(day):
