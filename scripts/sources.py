@@ -28,8 +28,11 @@ def get_last_fm(user, api_key):
             items.append(artist + " - " + make_link(name, url))
         return make_ul(items)
 
-def get_bookmarks(user, password, end_point):
-    url = (end_point + "posts/recent") % (user, password)
+def get_bookmarks(end_point, user = None, password = None, auth_token = None):
+    if auth_token:
+        url = end_point + "posts/recent?auth_token=" + auth_token
+    else:
+        url = (end_point + "posts/recent") % (user, password)
     f = urllib.urlopen(url)
     # f = open("delicious_recent.xml", "r")
     xml_string = f.read()
@@ -43,10 +46,10 @@ def get_bookmarks(user, password, end_point):
     return result
 
 def get_delicious(user, password):
-    return get_bookmarks(user, password, "https://%s:%s@api.del.icio.us/v1/")
+    return get_bookmarks("https://%s:%s@api.del.icio.us/v1/", user = user, password = password)
 
-def get_pinboard(user, password):
-    return get_bookmarks(user, password, "https://%s:%s@api.pinboard.in/v1/")
+def get_pinboard(auth_token):
+    return get_bookmarks("https://api.pinboard.in/v1/", auth_token = auth_token)
 
 def get_goodreads(id, shelf):
     f = feedparser.parse("http://www.goodreads.com/review/list_rss/%s?shelf=%s" % (id, shelf))
