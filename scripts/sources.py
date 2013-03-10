@@ -7,7 +7,6 @@ from datetime import date, datetime, timedelta
 from xml.parsers.expat import ExpatError
 
 import pytz
-import twitter # http://code.google.com/p/python-twitter/
 import feedparser # http://feedparser.org/
 from icalendar import Calendar
 
@@ -108,34 +107,11 @@ def get_lanyrd(username):
         items.append(make_link(event_title, event_url) + "<br/>" + event_date)
     return make_ul(items)       
 
-def get_twitter(user):
-    """this no longer works since Twitter API changes"""
-    api = twitter.Api()
-    # try getting an increasing number of tweets until the timeline contains
-    # at least 3 tweets that are not @replies
-    for tweet_count in (20, 50, 100, 250):
-        timeline = api.GetUserTimeline(user, count = tweet_count)
-        items = []
-        for status in timeline:
-            if not is_at_reply(status):
-                items.append(format_tweet(status.text) + "<br/>" + 
-                    make_link(status.relative_created_at, "http://twitter.com/%s/status/%s" % (user, status.id)))
-            if len(items) == 3: return make_ul(items)
-    # didn't find 3 recent tweets, if *any* were found then return them
-    # otherwise return a "No recent tweets messsage"
-    if len(items) > 0:
-        return make_ul(items)
-    else:
-        return "No recent tweets"
-
 def make_delicious_html(post):
     url = post.getAttribute("href")
     title = post.getAttribute("description")
     notes = post.getAttribute("extended")
     return make_link(title, url, notes) + " <span style=\"color: #808080;\">(" + get_domain(url) + ")</span>"
-
-def is_at_reply(status):
-    return status.text.startswith('@')
 
 def make_link(description, url, title = None):
     if title is not None and title != "":
@@ -163,12 +139,6 @@ def get_question_link(entry):
     link = entry.link
     prefix = "http://stackoverflow.com,"
     return link[len(prefix):] if link.startswith(prefix) else link
-
-def format_tweet(tweet):
-    tweet = re.sub("(http://[^\s]+)", "<a href=\"\\1\">\\1</a>", tweet)
-    tweet = re.sub("@([a-zA-Z0-9_]+)", "@<a href=\"http://twitter.com/\\1\">\\1</a>", tweet)
-    tweet = re.sub("#([a-zA-Z0-9_]+)", "<a href=\"http://twitter.com/search?q=\\1\">#\\1</a>", tweet)
-    return tweet
 
 def get_domain(url):
     hostname = urlparse(url)[1]
