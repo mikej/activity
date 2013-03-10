@@ -30,15 +30,20 @@ def get_last_fm(user, api_key):
 
 def get_bookmarks(end_point, user = None, password = None, auth_token = None):
     if auth_token:
-        url = end_point + "posts/recent?auth_token=" + auth_token
+        url = end_point + "posts/recent?auth_token=" + auth_token + "&count=%d"
     else:
-        url = (end_point + "posts/recent") % (user, password)
-    f = urllib.urlopen(url)
-    # f = open("delicious_recent.xml", "r")
-    xml_string = f.read()
-    doc = xml.dom.minidom.parseString(xml_string)
-    posts = doc.getElementsByTagName("post")
-    items = [make_delicious_html(post) for post in posts if is_public(post)]
+        url = ((end_point + "posts/recent") % (user, password)) + "?count=%d"
+    # request with increasing count until list includes at least 5 public bookmarks
+    for recent_count in (10, 25, 50, 75, 100):
+        request_url = url % (recent_count)
+        f = urllib.urlopen(request_url)
+        # f = open("delicious_recent.xml", "r")
+        xml_string = f.read()
+        doc = xml.dom.minidom.parseString(xml_string)
+        posts = doc.getElementsByTagName("post")
+        items = [make_delicious_html(post) for post in posts if is_public(post)]
+        if len(items) >= 5:
+            break
     if len(items) > 0:
         result = make_ul(items[:5])
     else:
@@ -209,10 +214,10 @@ def make_event_date(event):
         # if different years then display like "Monday, 31st December 2012 - Tuesday 1st January 2013"
         return " ".join([start_day_of_month, start_month, start_year, " - ", end_day_of_month, end_month, end_year])
     elif start_month != end_month:
-        # if in different months display like "Friday, 30th November - Saturday, 1st December 2012"
+        # if in the same year but different months display like "Friday, 30th November - Saturday, 1st December 2012"
         return " ".join([start_day_of_month, start_month, end_day_of_month, end_month,  end_year])
     else:
-        # if in the year and month display like "Saturday, 24th - Sunday 25th November 2012"
+        # if in the same year and month display like "Saturday, 24th - Sunday 25th November 2012"
         return " ".join([start_day_of_month, " - ", end_day_of_month, end_month, end_year])
 
 def ordinal(day):
