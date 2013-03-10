@@ -5,6 +5,7 @@ import sys
 
 import sources
 import settings
+import traceback
 
 def write_file(base_filename, content):
     filename = os.path.join(settings.OUTPUT_DIR, base_filename)
@@ -33,7 +34,13 @@ if __name__ == '__main__':
     requested = sys.argv[1:] if len(sys.argv) > 1 else settings.SOURCES.keys()
 
     for source_name in requested:
-	source = settings.SOURCES[source_name]
-	file_name, method, args = source[0], getattr(sources, source[1]), source[2:]
-        html = method(*args)
-        write_file(file_name, html)
+        source = settings.SOURCES[source_name]
+        file_name, method, args = source[0], getattr(sources, source[1]), source[2:]
+        try:
+            html = method(*args)
+            if html is None:
+                raise Exception('None returned by method \'%s\' when HTML content expected' % method.__name__)
+            write_file(file_name, html)
+        except Exception as e:
+            sys.stderr.write('An error occured processing \'%s\', update will continue with the next source\n' % source_name)
+            traceback.print_exc(file = sys.stderr)
