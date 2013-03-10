@@ -1,3 +1,5 @@
 Synclet.app
 *.pyc
 *.sublime-*
+htdocs/boxes
+scripts/settings.py
