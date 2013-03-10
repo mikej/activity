@@ -4,8 +4,9 @@ import xml.dom.minidom
 from urlparse import urlparse
 import cgi
 from datetime import date, datetime, timedelta
-import pytz
+from xml.parsers.expat import ExpatError
 
+import pytz
 import twitter # http://code.google.com/p/python-twitter/
 import feedparser # http://feedparser.org/
 from icalendar import Calendar
@@ -39,7 +40,10 @@ def get_bookmarks(end_point, user = None, password = None, auth_token = None):
         f = urllib.urlopen(request_url)
         # f = open("delicious_recent.xml", "r")
         xml_string = f.read()
-        doc = xml.dom.minidom.parseString(xml_string)
+        try:
+            doc = xml.dom.minidom.parseString(xml_string)
+        except ExpatError:
+            raise Exception('An error occured parsing the recent bookmark response:\n%s' % xml_string) 
         posts = doc.getElementsByTagName("post")
         items = [make_delicious_html(post) for post in posts if is_public(post)]
         if len(items) >= 5:
