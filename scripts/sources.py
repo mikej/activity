@@ -91,12 +91,16 @@ def get_github_activity(user):
     else:
         return "No recent activity"
 
-def get_lanyrd(username):
+def get_events(username):
     f = urllib.urlopen("http://lanyrd.com/profile/%s/%s.attending.ics" % (username, username))
     cal = Calendar.from_ical(f.read())
     f.close()
 
-    events = [component for component in cal.walk() if component.name == 'VEVENT']
+    events = [component for component in cal.walk() if component.name == 'VEVENT' and not finished(component)]
+    return events
+
+def get_lanyrd(username):
+    events = get_events(username)
     events.sort(key = lambda e: get_datetime(e))
 
     items = []
@@ -170,6 +174,19 @@ def get_datetime(event):
     else:
         # treat start time of the event as midnight UTC
         return pytz.utc.localize(datetime(dt.year, dt.month, dt.day))
+
+def finished(event):
+    event_end = get_event_end(event)
+    now = datetime.now(pytz.utc)
+    return now > event_end
+
+def get_event_end(event):
+    dt = event.get('DTEND').dt
+    if isinstance(dt, datetime):
+        return dt
+    else:
+        # only got the day but not the end time so assume ends at 23:59:59
+        return pytz.utc.localize(datetime(dt.year, dt.month, dt.day, 23, 59, 59))
 
 def make_event_date(event):
     if isinstance(event.get('DTSTART').dt, datetime):
