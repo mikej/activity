@@ -105,7 +105,19 @@ def get_lanyrd(username):
         event_date = make_event_date(event)
         event_url = event.get('URL')
         items.append(make_link(event_title, event_url) + "<br/>" + event_date)
-    return make_ul(items)       
+    return make_ul(items)
+
+def get_instapaper_likes(feed_url):
+    f = feedparser.parse(feed_url)
+    entries = f.entries
+    entries.sort(key = lambda e : e.updated_parsed, reverse = True)
+    if len(entries) > 0:
+        items = []
+        for entry in entries[:5]:
+            items.append(make_link(entry.title, entry.link))
+        return make_ul(items)
+    else:
+        return "No recent likes"
 
 def make_delicious_html(post):
     url = post.getAttribute("href")
