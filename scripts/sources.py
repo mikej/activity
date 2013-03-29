@@ -27,6 +27,8 @@ def get_last_fm(user, api_key):
             url = track.getElementsByTagName('url')[0].firstChild.nodeValue
             items.append(artist + " - " + make_link(name, url))
         return make_ul(items)
+    else:
+        raise exception('Unexpected response from last.fm: %s' % xml_string)
 
 def get_bookmarks(end_point, user = None, password = None, auth_token = None):
     if auth_token:
