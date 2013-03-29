@@ -6,6 +6,7 @@ import sys
 import sources
 import settings
 import traceback
+from time import sleep
 
 def write_file(base_filename, content):
     filename = os.path.join(settings.OUTPUT_DIR, base_filename)
@@ -28,6 +29,22 @@ def write_file(base_filename, content):
         os.rename(filename, filename_old)
     os.rename(filename_new, filename)
 
+def with_retries(retry_count, method, *args):
+    success = False
+    for i in range(0, retry_count):
+        try:
+            result = method(*args)
+        except Exception as e:
+            sleep(2)
+            continue
+        success = True
+        break
+    if success:
+        return result
+    else:
+        raise Exception('%s failed after %d tries, most recent error: %s: "%s"' % 
+            (method.__name__, retry_count, e.__class__.__name__, e.message))
+
 if __name__ == '__main__':
     # Accept a list of sources to update on the command line.
     # If no args then update all.
@@ -37,7 +54,7 @@ if __name__ == '__main__':
         source = settings.SOURCES[source_name]
         file_name, method, args = source[0], getattr(sources, source[1]), source[2:]
         try:
-            html = method(*args)
+            html = with_retries(5, method, *args)
             if html is None:
                 raise Exception('None returned by method \'%s\' when HTML content expected' % method.__name__)
             write_file(file_name, html)
