@@ -43,7 +43,7 @@ def with_retries(retry_count, method, *args):
         return result
     else:
         raise Exception('%s failed after %d tries, most recent error: %s: "%s"' % 
-            (method.__name__, retry_count, e.__class__.__name__, e.message))
+            (method.__name__, retry_count, e.__class__.__name__, e))
 
 if __name__ == '__main__':
     # Accept a list of sources to update on the command line.
