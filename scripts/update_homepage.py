@@ -35,7 +35,7 @@ def with_retries(retry_count, method, *args):
         try:
             result = method(*args)
         except Exception as e:
-            sleep(2)
+            sleep(2 ** (i + 1))
             continue
         success = True
         break
