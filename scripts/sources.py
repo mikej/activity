@@ -105,13 +105,16 @@ def get_lanyrd(username):
     events = get_events(username)
     events.sort(key = lambda e: get_datetime(e))
 
-    items = []
-    for event in events:
-        event_title = event.get('SUMMARY')
-        event_date = make_event_date(event)
-        event_url = event.get('URL')
-        items.append(make_link(event_title, event_url) + "<br/>" + event_date)
-    return make_ul(items)
+    if len(events) > 0:
+        items = []
+        for event in events:
+            event_title = event.get('SUMMARY')
+            event_date = make_event_date(event)
+            event_url = event.get('URL')
+            items.append(make_link(event_title, event_url) + "<br/>" + event_date)
+        return make_ul(items)
+    else:
+        return "No upcoming events"
 
 def get_instapaper_likes(feed_url):
     f = feedparser.parse(feed_url)
