@@ -52,7 +52,7 @@ def get_bookmarks(end_point, user = None, password = None, auth_token = None):
     if len(items) > 0:
         result = make_ul(items[:5])
     else:
-        result = "No recent entries"
+        result = "<p>No recent entries</p>"
     return result
 
 def get_delicious(user, password):
@@ -78,7 +78,7 @@ def get_so_answers(user_id):
             items.append(make_link(get_question_title(answer), get_question_link(answer)))
         return make_ul(items)
     else:
-        return "No recent answers"
+        return "<p>No recent answers</p>"
 
 def get_github_activity(user):
     f = feedparser.parse("http://github.com/%s.atom" % user)
@@ -91,7 +91,7 @@ def get_github_activity(user):
             items.append(make_link(title, entry.link))
         return make_ul(items)
     else:
-        return "No recent activity"
+        return "<p>No recent activity</p>"
 
 def get_events(username):
     f = urllib.urlopen("http://lanyrd.com/profile/%s/%s.attending.ics" % (username, username))
@@ -114,7 +114,7 @@ def get_lanyrd(username):
             items.append(make_link(event_title, event_url) + "<br/>" + event_date)
         return make_ul(items)
     else:
-        return "No upcoming events"
+        return "<p>No upcoming events</p>"
 
 def get_instapaper_likes(feed_url):
     f = feedparser.parse(feed_url)
@@ -126,7 +126,7 @@ def get_instapaper_likes(feed_url):
             items.append(make_link(entry.title, entry.link))
         return make_ul(items)
     else:
-        return "No recent likes"
+        return "<p>No recent likes</p>"
 
 def make_delicious_html(post):
     url = post.getAttribute("href")
