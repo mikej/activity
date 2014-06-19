@@ -103,7 +103,7 @@ def get_events(username):
 
 def get_lanyrd(username):
     events = get_events(username)
-    events.sort(key = lambda e: get_datetime(e))
+    events.sort(key = lambda e: get_start_datetime(e))
 
     if len(events) > 0:
         items = []
@@ -168,7 +168,7 @@ def get_domain(url):
     else:
         return hostname
 
-def get_datetime(event):
+def get_start_datetime(event):
     """If an event only specifies a start day but not a start time then the
     DTSTART will be a date object rather than a datetime object. This method
     ensures we have a datetime so that the start times of all events are
@@ -176,36 +176,35 @@ def get_datetime(event):
     dt = event.get('DTSTART').dt
     if isinstance(dt, datetime):
         return dt
-    else:
+    elif isinstance(dt, date):
         # treat start time of the event as midnight UTC
         return pytz.utc.localize(datetime(dt.year, dt.month, dt.day))
+    else:
+        raise Exception("Unsupported start date type") 
 
 def finished(event):
-    event_end = get_event_end(event)
+    event_end = get_end_datetime(event)
     now = datetime.now(pytz.utc)
     return now > event_end
 
-def get_event_end(event):
+def get_end_datetime(event):
     dt = event.get('DTEND').dt
     if isinstance(dt, datetime):
         return dt
-    else:
-        # only got the day but not the end time so assume ends at 23:59:59
-        return pytz.utc.localize(datetime(dt.year, dt.month, dt.day, 23, 59, 59))
-
-def make_event_date(event):
-    if isinstance(event.get('DTSTART').dt, datetime):
-        start_datetime = event.get('DTSTART').dt
-        end_datetime = event.get('DTEND').dt
-        start_date = date(start_datetime.year, start_datetime.month, start_datetime.day)
-        end_date = date(end_datetime.year, end_datetime.month, end_datetime.day)
-    elif isinstance(event.get('DTSTART').dt, date):
-        start_date = event.get('DTSTART').dt
+    elif isinstance(dt, date):
         # end dates seem to be 1 day too high for events that don't specify times
         # in the ical so subtract 1
-        end_date = (event.get('DTEND').dt - timedelta(days = 1))
+        end_date = (dt - timedelta(days = 1))
+        # only got the day but not the end time so assume ends at 23:59:59
+        return pytz.utc.localize(datetime(end_date.year, end_date.month, end_date.day, 23, 59, 59))
     else:
-        return "" # maybe raise an exception instead
+        raise Exception("Unsupported end date type") 
+
+def make_event_date(event):
+    start_datetime = get_start_datetime(event)
+    start_date = date(start_datetime.year, start_datetime.month, start_datetime.day)
+    end_datetime = get_end_datetime(event).get('DTEND').dt
+    end_date = date(end_datetime.year, end_datetime.month, end_datetime.day)
 
     start_year = start_date.strftime('%Y')
     start_month = start_date.strftime('%-B')
