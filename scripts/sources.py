@@ -39,14 +39,13 @@ def get_bookmarks(end_point, user = None, password = None, auth_token = None):
     for recent_count in (10, 25, 50, 75, 100):
         request_url = url % (recent_count)
         f = urllib.urlopen(request_url)
-        # f = open("delicious_recent.xml", "r")
         xml_string = f.read()
         try:
             doc = xml.dom.minidom.parseString(xml_string)
         except ExpatError:
             raise Exception('An error occured parsing the recent bookmark response:\n%s' % xml_string) 
         posts = doc.getElementsByTagName("post")
-        items = [make_delicious_html(post) for post in posts if is_public(post)]
+        items = [make_bookmark_html(post) for post in posts if is_public(post)]
         if len(items) >= 5:
             break
     if len(items) > 0:
@@ -54,9 +53,6 @@ def get_bookmarks(end_point, user = None, password = None, auth_token = None):
     else:
         result = "<p>No recent entries</p>"
     return result
-
-def get_delicious(user, password):
-    return get_bookmarks("https://%s:%s@api.del.icio.us/v1/", user = user, password = password)
 
 def get_pinboard(auth_token):
     return get_bookmarks("https://api.pinboard.in/v1/", auth_token = auth_token)
@@ -128,7 +124,7 @@ def get_instapaper_likes(feed_url):
     else:
         return "<p>No recent likes</p>"
 
-def make_delicious_html(post):
+def make_bookmark_html(post):
     url = post.getAttribute("href")
     title = post.getAttribute("description")
     notes = post.getAttribute("extended")
