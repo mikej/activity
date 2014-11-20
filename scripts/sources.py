@@ -35,7 +35,7 @@ def get_bookmarks(end_point, user = None, password = None, auth_token = None):
         url = end_point + "posts/recent?auth_token=" + auth_token + "&count=%d"
     else:
         url = ((end_point + "posts/recent") % (user, password)) + "?count=%d"
-    # request with increasing count until list includes at least 5 public bookmarks
+    # request with increasing count until list includes at least 5 public, read bookmarks
     for recent_count in (10, 25, 50, 75, 100):
         request_url = url % (recent_count)
         f = urllib.urlopen(request_url)
@@ -45,7 +45,7 @@ def get_bookmarks(end_point, user = None, password = None, auth_token = None):
         except ExpatError:
             raise Exception('An error occured parsing the recent bookmark response:\n%s' % xml_string) 
         posts = doc.getElementsByTagName("post")
-        items = [make_bookmark_html(post) for post in posts if is_public(post)]
+        items = [make_bookmark_html(post) for post in posts if is_public(post) and not is_unread(post)]
         if len(items) >= 5:
             break
     if len(items) > 0:
@@ -144,6 +144,9 @@ def is_answer(e):
 
 def is_public(post):
     return post.getAttribute("shared") != "no"
+
+def is_unread(post):
+    return post.getAttribute("toread") == "yes"
 
 def get_question_title(entry):
     m = re.match("^Answer by mikej for (.+)$", entry.title)
