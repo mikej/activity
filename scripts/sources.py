@@ -202,7 +202,7 @@ def get_end_datetime(event):
 def make_event_date(event):
     start_datetime = get_start_datetime(event)
     start_date = date(start_datetime.year, start_datetime.month, start_datetime.day)
-    end_datetime = get_end_datetime(event).get('DTEND').dt
+    end_datetime = get_end_datetime(event)
     end_date = date(end_datetime.year, end_datetime.month, end_datetime.day)
 
     start_year = start_date.strftime('%Y')
