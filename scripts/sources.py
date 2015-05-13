@@ -119,10 +119,14 @@ def get_instapaper_likes(feed_url):
     if len(entries) > 0:
         items = []
         for entry in entries[:5]:
-            items.append(make_link(entry.title, entry.link))
+            items.append(make_instapaper_favourite_html(entry))
         return make_ul(items)
     else:
         return "<p>No recent likes</p>"
+
+def make_instapaper_favourite_html(entry):
+    return make_link(entry.title, entry.link) + \
+        " <span style=\"color: #808080;\">(" + get_domain(entry.link) + ")</span>"
 
 def make_bookmark_html(post):
     url = post.getAttribute("href")
