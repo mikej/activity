@@ -21,7 +21,7 @@ def get_last_fm(user, api_key):
             doc.firstChild.getAttribute('status') == 'ok':
         tracks = doc.getElementsByTagName('track')
         items = []
-        for track in tracks:
+        for track in tracks[:15]:
             artist = track.getElementsByTagName('artist')[0].firstChild.nodeValue
             name = track.getElementsByTagName('name')[0].firstChild.nodeValue
             url = track.getElementsByTagName('url')[0].firstChild.nodeValue
