@@ -91,11 +91,16 @@ def get_github_activity(user):
 
 def get_events(username):
     f = urllib.urlopen("http://lanyrd.com/profile/%s/%s.attending.ics" % (username, username))
-    cal = Calendar.from_ical(f.read())
+    content = f.read()
+    status = f.getcode()
     f.close()
+    if status == 200:
+        cal = Calendar.from_ical(content)
 
-    events = [component for component in cal.walk() if component.name == 'VEVENT' and not finished(component)]
-    return events
+        events = [component for component in cal.walk() if component.name == 'VEVENT' and not finished(component)]
+        return events
+    else:
+        raise Exception("Lanyrd returned status %d: %s" % (status, content))
 
 def get_lanyrd(username):
     events = get_events(username)
