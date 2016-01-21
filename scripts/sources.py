@@ -31,7 +31,7 @@ def last_fm_track_link(track):
     artist = track.getElementsByTagName('artist')[0].firstChild.nodeValue
     name = track.getElementsByTagName('name')[0].firstChild.nodeValue
     url = track.getElementsByTagName('url')[0].firstChild.nodeValue
-    return artist + " - " + make_link(name, url)
+    return make_link(name, url) + " - " + artist
 
 # from http://stackoverflow.com/a/3463410/63034
 def strip_consecutive_duplicates(iterable, key=None):
