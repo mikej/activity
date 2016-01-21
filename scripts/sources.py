@@ -15,7 +15,7 @@ from icalendar import Calendar
 
 def get_last_fm(user, api_key):
     params = urllib.urlencode({'method': 'user.getrecenttracks',
-        'user': user, 'api_key': api_key})
+        'user': user, 'api_key': api_key, 'limit': 200})
     f = urllib.urlopen("http://ws.audioscrobbler.com/2.0/?%s" % params)
     # f = open("ws.audioscrobbler.com.xml", "r")
     xml_string = f.read()
