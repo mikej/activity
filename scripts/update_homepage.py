@@ -59,11 +59,9 @@ def record_last_update(source_name):
     now = int(time.time())
     if row_count == 0:
         # insert
-        print "insert"
         conn.execute('insert into sources (source_name, last_success_time) values (?, ?)', (source_name, now))
     else:
         # update
-        print "update"
         conn.execute('update sources set last_success_time = ? where source_name = ?', (now, source_name))
 
     conn.commit()
@@ -79,11 +77,9 @@ def record_last_error(source_name, error):
     now = int(time.time())
     if row_count == 0:
         # insert
-        print "insert"
         conn.execute('insert into sources (source_name, last_error_time, last_error_message) values (?, ?, ?)', (source_name, now, error))
     else:
         # update
-        print "update"
         conn.execute('update sources set last_error_time = ?, last_error_message = ? where source_name = ?', (now, error, source_name))
 
     conn.commit()
