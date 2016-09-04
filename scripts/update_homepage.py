@@ -2,11 +2,15 @@
 from __future__ import with_statement
 import os
 import sys
+import sqlite3
+import time
 
 import sources
 import settings
 import traceback
 from time import sleep
+
+DB = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'activity.db')
 
 def write_file(base_filename, content):
     filename = os.path.join(settings.OUTPUT_DIR, base_filename)
@@ -45,6 +49,46 @@ def with_retries(retry_count, method, *args):
         raise Exception('%s failed after %d tries, most recent error: %s: "%s"' % 
             (method.__name__, retry_count, e.__class__.__name__, e))
 
+def record_last_update(source_name):
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute('select count(*) from sources where source_name = ?', (source_name,))
+    row_count = cur.fetchone()[0]
+    cur.close()
+
+    now = int(time.time())
+    if row_count == 0:
+        # insert
+        print "insert"
+        conn.execute('insert into sources (source_name, last_success_time) values (?, ?)', (source_name, now))
+    else:
+        # update
+        print "update"
+        conn.execute('update sources set last_success_time = ? where source_name = ?', (now, source_name))
+
+    conn.commit()
+    conn.close()
+
+def record_last_error(source_name, error):
+    conn = sqlite3.connect('activity.db')
+    cur = conn.cursor()
+    cur.execute('select count(*) from sources where source_name = ?', (source_name,))
+    row_count = cur.fetchone()[0]
+    cur.close()
+
+    now = int(time.time())
+    if row_count == 0:
+        # insert
+        print "insert"
+        conn.execute('insert into sources (source_name, last_error_time, last_error_message) values (?, ?, ?)', (source_name, now, error))
+    else:
+        # update
+        print "update"
+        conn.execute('update sources set last_error_time = ?, last_error_message = ? where source_name = ?', (now, error, source_name))
+
+    conn.commit()
+    conn.close()
+
 if __name__ == '__main__':
     # Accept a list of sources to update on the command line.
     # If no args then update all.
@@ -58,6 +102,8 @@ if __name__ == '__main__':
             if html is None:
                 raise Exception('None returned by method \'%s\' when HTML content expected' % method.__name__)
             write_file(file_name, html)
+            record_last_update(source_name)
         except Exception as e:
             sys.stderr.write('An error occured processing \'%s\', update will continue with the next source\n' % source_name)
             traceback.print_exc(file = sys.stderr)
+            record_last_error(source_name, traceback.format_exc())
