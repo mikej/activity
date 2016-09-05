@@ -68,7 +68,7 @@ def record_last_update(source_name):
     conn.close()
 
 def record_last_error(source_name, error):
-    conn = sqlite3.connect('activity.db')
+    conn = sqlite3.connect(DB)
     cur = conn.cursor()
     cur.execute('select count(*) from sources where source_name = ?', (source_name,))
     row_count = cur.fetchone()[0]
