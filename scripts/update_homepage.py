@@ -46,7 +46,7 @@ def with_retries(retry_count, method, *args):
     if success:
         return result
     else:
-        raise Exception('%s failed after %d tries, most recent error: %s: "%s"' % 
+        raise Exception('%s failed after %d tries, last attempt due to: %s: "%s"' %
             (method.__name__, retry_count, e.__class__.__name__, e))
 
 def record_last_update(source_name):
