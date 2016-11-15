@@ -69,8 +69,8 @@ def get_stale_sources():
 stale_sources = get_stale_sources()
 
 if len(stale_sources) > 0:
-    print "Heads up! The following activity sources haven't updated in the last day:\n"
+    sys.stderr.write("Heads up! The following activity sources haven't updated in the last day:\n\n")
     logs = ["Source: " + source[0] + ". Last success: " +
         age(None if source[3] is None else datetime.fromtimestamp(source[3])) +
         "\nMost recent error " + age(datetime.fromtimestamp(source[2])) + " ago: " + source[1] for source in stale_sources]
-    print "\n------------------------------------------------------------------------\n".join(logs)
+    sys.stderr.write("\n------------------------------------------------------------------------\n".join(logs))
