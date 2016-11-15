@@ -9,3 +9,5 @@ SOURCES = {
     'so' : ('so.html', 'get_so_answers', 'STACKOVERFLOW_USERID'),
     'github' : ('github.html', 'get_github_activity', 'GITHUB_USERNAME')
 }
+
+HEALTH_CHECK_URL=None

@@ -10,6 +10,10 @@ import settings
 import traceback
 from time import sleep
 
+import urllib2
+if settings.HEALTH_CHECK_URL:
+    urllib2.urlopen(settings.HEALTH_CHECK_URL)
+
 DB = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'activity.db')
 
 def write_file(base_filename, content):
