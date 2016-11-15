@@ -153,7 +153,7 @@ def make_link(description, url, title = None):
         return '<a href="%s">%s</a>' % (url, cgi.escape(description, True))
 
 def make_ul(items):
-    return "<ul>\n" + "".join(["<li>%s</li>\n" % item for item in items]) + "</ul>"
+    return "<ul class=\"activity-items\">\n" + "".join(["<li>%s</li>\n" % item for item in items]) + "</ul>"
 
 def is_answer(e):
     return e.title.startswith('Answer by ')
