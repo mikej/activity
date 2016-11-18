@@ -13,6 +13,9 @@ import pytz
 import feedparser # http://feedparser.org/
 from icalendar import Calendar
 
+import json
+from dateutil.parser import parse as parse_date
+
 def get_last_fm(user, api_key):
     params = urllib.urlencode({'method': 'user.getrecenttracks',
         'user': user, 'api_key': api_key, 'limit': 200})
@@ -124,6 +127,33 @@ def get_lanyrd(username):
     else:
         return "<p>No upcoming events</p>"
 
+def get_json_events(url):
+    f = urllib.urlopen(url)
+    raw_json = f.read()
+    f.close()
+
+    events_json = json.loads(raw_json)
+
+    events = events_json.get('events', [])
+    events = [event for event in events if upcoming(event)]
+    items = []
+    if len(events) > 0:
+        events.sort(key = lambda e: parse_date(e.get('date')))
+        for event in events:
+            title = event.get('title', 'Untiteld event')
+            event_date = event.get('date')
+            event_url = event.get('url', None)
+            items.append(make_link(title, event_url) + "<br/>" + event_date)
+        return make_ul(items)
+    else:
+        return "<p>No upcoming events</p>"
+
+def upcoming(event):
+    now = datetime.now()
+    today = datetime(now.year, now.month, now.day)
+    event_date = parse_date(event.get('date'))
+    return event_date >= today
+
 def get_instapaper_likes(feed_url):
     f = feedparser.parse(feed_url)
     entries = f.entries
@@ -147,6 +177,8 @@ def make_bookmark_html(post):
     return make_link(title, url, notes) + " <span style=\"color: #808080;\">(" + get_domain(url) + ")</span>"
 
 def make_link(description, url, title = None):
+    if url is None:
+        return description
     if title is not None and title != "":
         return '<a href="%s" title="%s">%s</a>' % (url, cgi.escape(title, True), cgi.escape(description, True))
     else:
