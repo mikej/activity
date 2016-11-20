@@ -4,6 +4,7 @@ import os
 import sys
 import sqlite3
 import time
+import importlib
 
 import sources
 import settings
@@ -96,8 +97,11 @@ if __name__ == '__main__':
 
     for source_name in requested:
         source = settings.SOURCES[source_name]
-        file_name, method, args = source[0], getattr(sources, source[1]), source[2:]
+        file_name, qualified_method, args = source[0], source[1], source[2:]
         try:
+            module_name, method_name = qualified_method.split(".")
+            source_module = importlib.import_module("sources." + module_name)
+            method = getattr(source_module, method_name)
             html = with_retries(5, method, *args)
             if html is None:
                 raise Exception('None returned by method \'%s\' when HTML content expected' % method.__name__)
