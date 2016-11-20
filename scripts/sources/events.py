@@ -3,7 +3,7 @@ import json
 from dateutil.parser import parse as parse_date
 from datetime import datetime
 
-from utils import make_link, make_ul
+from utils import make_link, make_ul, make_date_range
 
 def get_json_events(url):
     f = urllib.urlopen(url)
@@ -19,9 +19,10 @@ def get_json_events(url):
         events.sort(key = lambda e: parse_date(e.get('date')))
         for event in events:
             title = event.get('title', 'Untitled event')
-            event_date = event.get('date')
+            start_date = parse_date(event.get('date'))
+            event_date_str = make_date_range(start_date, start_date) # only handle single day events for now
             event_url = event.get('url', None)
-            items.append(make_link(title, event_url) + "<br/>" + event_date)
+            items.append(make_link(title, event_url) + "<br/>" + event_date_str)
         return make_ul(items)
     else:
         return "<p>No upcoming events</p>"
