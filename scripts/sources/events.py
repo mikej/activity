@@ -18,7 +18,7 @@ def get_json_events(url):
     if len(events) > 0:
         events.sort(key = lambda e: parse_date(e.get('date')))
         for event in events:
-            title = event.get('title', 'Untiteld event')
+            title = event.get('title', 'Untitled event')
             event_date = event.get('date')
             event_url = event.get('url', None)
             items.append(make_link(title, event_url) + "<br/>" + event_date)
