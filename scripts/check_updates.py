@@ -6,6 +6,8 @@ import sqlite3
 import time
 from datetime import datetime
 
+import settings
+
 DB = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'activity.db')
 
 # http://www.siafoo.net/snippet/89
@@ -66,7 +68,8 @@ def get_stale_sources():
     conn.close()
     return results
 
-stale_sources = get_stale_sources()
+# only care about active sources i.e. ones still listed in settings.SOURCES
+stale_sources = [stale_source for stale_source in get_stale_sources() if stale_source[0] in settings.SOURCES.keys()]
 
 if len(stale_sources) > 0:
     sys.stderr.write("Heads up! The following activity sources haven't updated in the last day:\n\n")
