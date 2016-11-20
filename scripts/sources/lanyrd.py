@@ -1,6 +1,6 @@
 import urllib
 from icalendar import Calendar
-from utils import make_link, make_ul, ordinal
+from utils import make_link, make_ul, make_date_range
 import pytz
 from datetime import date, datetime, timedelta
 
@@ -69,24 +69,4 @@ def make_event_date(event):
     start_date = date(start_datetime.year, start_datetime.month, start_datetime.day)
     end_datetime = get_end_datetime(event)
     end_date = date(end_datetime.year, end_datetime.month, end_datetime.day)
-
-    start_year = start_date.strftime('%Y')
-    start_month = start_date.strftime('%-B')
-    start_day_of_month = start_date.strftime('%A, ') + ordinal(start_date.day)
-
-    end_year = end_date.strftime('%Y')
-    end_month = end_date.strftime('%-B')
-    end_day_of_month = end_date.strftime('%A, ') + ordinal(end_date.day)
-
-    if start_date == end_date:
-        # if same day then display like "Saturday, 8th December 2012"
-        return " ".join([start_day_of_month, start_month, start_year])
-    elif start_year != end_year:
-        # if different years then display like "Monday, 31st December 2012 - Tuesday 1st January 2013"
-        return " ".join([start_day_of_month, start_month, start_year, "-", end_day_of_month, end_month, end_year])
-    elif start_month != end_month:
-        # if in the same year but different months display like "Friday, 30th November - Saturday, 1st December 2012"
-        return " ".join([start_day_of_month, start_month, end_day_of_month, end_month,  end_year])
-    else:
-        # if in the same year and month display like "Saturday, 24th - Sunday 25th November 2012"
-        return " ".join([start_day_of_month, "-", end_day_of_month, end_month, end_year])
+    return make_date_range(start_date, end_date)
