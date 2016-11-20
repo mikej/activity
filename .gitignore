@@ -3,3 +3,4 @@ Synclet.app
 *.sublime-*
 htdocs/boxes
 scripts/settings.py
+/scripts/test_output
