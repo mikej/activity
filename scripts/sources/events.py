@@ -24,10 +24,10 @@ def get_json_events(url):
             event_tags = event.get('tags', [])
             event_url = event.get('url', None)
             entry = make_link(title, event_url) + "<br>"
-            if len(event_tags) > 0:
-                entry += " ".join([make_tag(tag) for tag in event_tags])
-                entry += "<br>"
             entry += event_date_str
+            if len(event_tags) > 0:
+                entry += "<br>"
+                entry += " ".join([make_tag(tag) for tag in event_tags])
             items.append(entry)
         return make_ul(items)
     else:
