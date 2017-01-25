@@ -21,8 +21,14 @@ def get_json_events(url):
             title = event.get('title', 'Untitled event')
             start_date = parse_date(event.get('date'))
             event_date_str = make_date_range(start_date, start_date) # only handle single day events for now
+            event_tags = event.get('tags', [])
             event_url = event.get('url', None)
-            items.append(make_link(title, event_url) + "<br/>" + event_date_str)
+            entry = make_link(title, event_url) + "<br>"
+            if len(event_tags) > 0:
+                entry += " ".join([make_tag(tag) for tag in event_tags])
+                entry += "<br>"
+            entry += event_date_str
+            items.append(entry)
         return make_ul(items)
     else:
         return "<p>No upcoming events</p>"
@@ -32,3 +38,7 @@ def upcoming(event):
     today = datetime(now.year, now.month, now.day)
     event_date = parse_date(event.get('date'))
     return event_date >= today
+
+def make_tag(tag):
+    tag_class = tag.lower() # TODO convert spaces to "-" and strip non-alpha
+    return "<span class=\"event-tag event-tag-" + tag_class + "\">" + tag + "</span>"
