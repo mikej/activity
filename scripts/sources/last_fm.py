@@ -13,7 +13,7 @@ def get_last_fm(user, api_key):
     if doc.firstChild.nodeName == 'lfm' and \
             doc.firstChild.getAttribute('status') == 'ok':
         tracks = doc.getElementsByTagName('track')
-        return make_ul(islice(strip_consecutive_duplicates([last_fm_track_link(track) for track in tracks]), 15))
+        return make_ul(islice(strip_consecutive_duplicates([last_fm_track_link(track) for track in tracks]), 10))
     else:
         raise Exception('Unexpected response from last.fm: %s' % xml_string)
 
